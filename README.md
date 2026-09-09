@@ -1,7 +1,9 @@
 # tetragon-lab
 Laboratório de testes do framework tetragon.
+
 ## A Fazer
 1. Especificações da máquina virtual;
-2. Instalação do Docker;
-3. Instalação do Tetragon;
-4. Especificações do docker de teste.
+2. Especificar a instalação do Docker;
+3. Especificar a instalação do Tetragon;
+4. Especificar as configurações do Tetragon;
+5. Especificara as configurações do docker de teste.
