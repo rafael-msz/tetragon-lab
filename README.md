@@ -2,7 +2,7 @@
 Laboratório de testes do framework tetragon.
 
 ## A Fazer
-1. Especificações da máquina virtual;
+1. Especificar da máquina virtual;
 2. Especificar a instalação do Docker;
 3. Especificar a instalação do Tetragon;
 4. Especificar as configurações do Tetragon;
