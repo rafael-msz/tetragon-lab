@@ -30,3 +30,7 @@ Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd
   cd tetragon-v1.7.0-amd64/
   sudo ./install.sh
   ```
+4. Por fim, verifique se o Tetragon está ativado:
+   ```
+   sudo systemctl status tetragon
+   ```
