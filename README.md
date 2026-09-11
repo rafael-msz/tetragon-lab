@@ -1,7 +1,7 @@
 # tetragon-lab
 Laboratório de testes do framework tetragon.
 
-## Especificação de Ambiente
+## Especificação de Ambiente da Máquina Virtual
 Abaixo estão detalhados os recursos da infraestrutura de hardware, sistema operacional e ferramentas de runtime configuradas para hospedar o Tetragon de forma adequada.
 
 ### Proxmox VE e Máquina Virtual
@@ -16,3 +16,14 @@ Abaixo estão detalhados os recursos da infraestrutura de hardware, sistema oper
 - Kernel do Guest: Linux 7.0.0-27-generic
 - Docker Engine: 29.7.2 (API v1.55) | Containerd: v2.3.4 | Runc: 1.4.3
 - Recomendação Tetragon: 256 MiB a 512 MiB de limite de memória.
+
+## Instalação do Tetragon
+Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd é um gerenciador de serviços para sistemas operacionais Linux modernos. É responsável por inicializar o sistema, gerenciar serviços e controlar recursos durante a inicialização do sistema operacional.
+
+1. Use o CURL para baixar o arquivo .tar.gz contendo a última versão do executável.
+2. Extraia o arquivo, e rode o script para instalar o Tetragon.
+  ```
+  tar -xvf tetragon-v1.7.0-amd64.tar.gz
+  cd tetragon-v1.7.0-amd64/
+  sudo ./install.sh
+```
