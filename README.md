@@ -21,9 +21,12 @@ Abaixo estão detalhados os recursos da infraestrutura de hardware, sistema oper
 Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd é um gerenciador de serviços para sistemas operacionais Linux modernos. É responsável por inicializar o sistema, gerenciar serviços e controlar recursos durante a inicialização do sistema operacional.
 
 1. Use o CURL para baixar o arquivo .tar.gz contendo a última versão do executável.
-2. Extraia o arquivo, e rode o script para instalar o Tetragon.
+   ```
+   curl -LO https://github.com/cilium/tetragon/releases/download/v1.7.0/tetragon-v1.7.0-amd64.tar.gz
+   ```
+3. Extraia o arquivo, e rode o script para instalar o Tetragon.
   ```
   tar -xvf tetragon-v1.7.0-amd64.tar.gz
   cd tetragon-v1.7.0-amd64/
   sudo ./install.sh
-```
+  ```
