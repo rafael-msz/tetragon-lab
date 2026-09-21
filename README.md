@@ -34,3 +34,21 @@ Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd
    ```
    sudo systemctl status tetragon
    ```
+## Configuração do Tetragon
+Para reescrever as configurações do tetragon, crie o diretório `/etc/tetragon.conf.d/`, onde as configurações ficarão guardadas.
+
+### Exportação de logs
+Como um usuário com privilégios, crie um arquivo de configuração `export-file` dentro do diretório `/etc/tetragon/tetragon.conf.d/export-file`
+```
+echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file
+systemctl restart tetragon
+```
+
+### Habilitar credênciais de processos
+Em linux, cada processo é associado a um usuário, grupo e capabilidades conhecidads como _process credentials_. Para habilitar o Tetragon para ver essas credenciais:
+1. Crie o arquivo: `enable-process-cred` no diretório `/etc/tetragon/tetragon.conf.d/`
+2. Escreva "true" no arquivo.
+```
+echo "true" | sudo tee -a /etc/tetragon/tetragon.conf.d/enable-process-cred
+systemctl restart tetragon
+```
