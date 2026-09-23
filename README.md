@@ -54,6 +54,8 @@ As configurações de controle do Tetragon podem ser carregadas de um arquivo YA
 
 A configuração `--config-dir` pode ser utilizada para mudar o diretório de onde o Tetragon irá carregar suas configurações.
 
+[Tabela de configurações do Tetragon daemon](https://tetragon.io/docs/reference/daemon-configuration/#configure-tracing-policies-location)
+
 ### Habilitar credênciais de processos
 Em linux, cada processo é associado a um usuário, grupo e capabilidades conhecidads como _process credentials_. Para habilitar o Tetragon para ver essas credenciais:
 1. Crie o arquivo: `enable-process-cred` no diretório `/etc/tetragon/tetragon.conf.d/`
