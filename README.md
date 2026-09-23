@@ -43,6 +43,16 @@ Como um usuário com privilégios, crie um arquivo de configuração `export-fil
 echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file
 systemctl restart tetragon
 ```
+Tetragon controlling settings can also be loaded from YAML configuration files according to this order:
+As configurações de controle do Tetragon podem ser carregadas de um arquivo YAML de acordo com a seguinte ordem de precedência:
+
+1. Diretório `/etc/tetragon/tetragon.conf.d/*`.
+2. Arquivo `/etc/tetragon/tetragon.yaml`.
+3. Diretórios:
+- `/usr/local/lib/tetragon/tetragon.conf.d/*`
+- `/usr/lib/tetragon/tetragon.conf.d/*`
+
+A configuração `--config-dir` pode ser utilizada para mudar o diretório de onde o Tetragon irá carregar suas configurações.
 
 ### Habilitar credênciais de processos
 Em linux, cada processo é associado a um usuário, grupo e capabilidades conhecidads como _process credentials_. Para habilitar o Tetragon para ver essas credenciais:
@@ -52,3 +62,12 @@ Em linux, cada processo é associado a um usuário, grupo e capabilidades conhec
 echo "true" | sudo tee -a /etc/tetragon/tetragon.conf.d/enable-process-cred
 systemctl restart tetragon
 ```
+
+### Tracing Policie
+Tetragon automaticamente carrega suas políticas de rastreamento (tracing policies) do diretório padrão `/etc/tetragon/tetragon.tp.d/`.
+
+Tracing policies podem ser organizadas em diretórios como `/etc/tetragon/tetragon.tp.d/file-access`, `/etc/tetragon/tetragon.tp.d/network-access`, etc.
+
+A configuração `--tracing-policy-dir` pode ser usada para mudar o diretório padrão de onde as tracing policies são carregadas.
+
+A configuraão `--tracing-policy` pode ser usada para especificar o caminho de uma tracing policy a ser carregada.
