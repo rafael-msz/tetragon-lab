@@ -82,3 +82,32 @@ Tracing policies podem ser organizadas em diretórios como `/etc/tetragon/tetrag
 A configuração `--tracing-policy-dir` pode ser usada para mudar o diretório padrão de onde as tracing policies são carregadas.
 
 A configuraão `--tracing-policy` pode ser usada para especificar o caminho de uma tracing policy a ser carregada.
+
+## Teste de Bloqueio de Acesso
+```
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "monitorar-segredo"
+spec:
+  kprobes:
+    - call: "security_file_permission"
+      syscall: false
+      args:
+        - index: 0
+          type: "file"
+        - index: 1
+          type: "int"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Equal"
+              values:
+                - "/tmp/secret.txt"
+            - index: 1
+              operator: "Equal"
+              values:
+                - "4"
+          matchActions:
+            - action: Sigkill
+```
