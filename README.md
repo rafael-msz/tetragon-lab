@@ -34,6 +34,10 @@ Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd
    ```
    sudo systemctl status tetragon
    ```
+5. Para ver o Tetragon em ação basta executar o comando:
+   ```
+   sudo tetra getevents -o compact
+   ```
 ## Configuração do Tetragon
 Para reescrever as configurações do tetragon, há o diretório `/etc/tetragon.conf.d/`, onde as configurações ficam guardadas.
 
