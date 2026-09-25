@@ -49,9 +49,11 @@ As configurações de controle do Tetragon podem ser carregadas de um arquivo YA
 - `/usr/lib/tetragon/tetragon.conf.d/*`
 
 ### Exportação de logs
-Verifique se o arquivo `export-file` existe dentro do diretório `/etc/tetragon/tetragon.conf.d/export-file`, e se o caminho especificado no arquivo é _/var/log/tetragon/tetragon.log_: . Se o arquivo não existe, utilize os comandos:
+O arquivo `export-file-name` dentro do diretório de configurações, define o caminho do arquivo onde o Tetragon escreverá os logs.
+
+Verifique se o arquivo `export-file-name` existe dentro do diretório `/etc/tetragon/tetragon.conf.d/`, e se o caminho especificado no texto do arquivo é _/var/log/tetragon/tetragon.log_. Se o arquivo não existe, utilize os comandos:
 ```
-echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file
+echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file-name
 systemctl restart tetragon
 ```
 
