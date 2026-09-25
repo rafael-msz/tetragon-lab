@@ -35,15 +35,11 @@ Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd
    sudo systemctl status tetragon
    ```
 ## Configuração do Tetragon
-Para reescrever as configurações do tetragon, crie o diretório `/etc/tetragon.conf.d/`, onde as configurações ficarão guardadas.
+Para reescrever as configurações do tetragon, há o diretório `/etc/tetragon.conf.d/`, onde as configurações ficam guardadas.
 
-### Exportação de logs
-Como um usuário com privilégios, crie um arquivo de configuração `export-file` dentro do diretório `/etc/tetragon/tetragon.conf.d/export-file`
-```
-echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file
-systemctl restart tetragon
-```
-Tetragon controlling settings can also be loaded from YAML configuration files according to this order:
+Se o diretório não foi criado durante a instalação: `sudo mkdir /etc/tetragon/tetragon.conf.d/`
+
+### Ordem de Precedência
 As configurações de controle do Tetragon podem ser carregadas de um arquivo YAML de acordo com a seguinte ordem de precedência:
 
 1. Diretório `/etc/tetragon/tetragon.conf.d/*`.
@@ -51,6 +47,13 @@ As configurações de controle do Tetragon podem ser carregadas de um arquivo YA
 3. Diretórios:
 - `/usr/local/lib/tetragon/tetragon.conf.d/*`
 - `/usr/lib/tetragon/tetragon.conf.d/*`
+
+### Exportação de logs
+Verifique se o arquivo `export-file` existe dentro do diretório `/etc/tetragon/tetragon.conf.d/export-file`, e se o caminho especificado no arquivo é _/var/log/tetragon/tetragon.log_: . Se o arquivo não existe, utilize os comandos:
+```
+echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file
+systemctl restart tetragon
+```
 
 A configuração `--config-dir` pode ser utilizada para mudar o diretório de onde o Tetragon irá carregar suas configurações.
 
@@ -65,7 +68,7 @@ echo "true" | sudo tee -a /etc/tetragon/tetragon.conf.d/enable-process-cred
 systemctl restart tetragon
 ```
 
-### Tracing Policie
+### Tracing Policies
 Tetragon automaticamente carrega suas políticas de rastreamento (tracing policies) do diretório padrão `/etc/tetragon/tetragon.tp.d/`.
 
 Tracing policies podem ser organizadas em diretórios como `/etc/tetragon/tetragon.tp.d/file-access`, `/etc/tetragon/tetragon.tp.d/network-access`, etc.
