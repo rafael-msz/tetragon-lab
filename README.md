@@ -175,7 +175,7 @@ docker exec target curl -sI https://ebpf.io
 docker exec target curl -s http://127.0.0.1
 docker stop target
 ```
-3. Observe os alertas gerados pelo Tetragon.
+3. Observe os alertas gerados pelo Tetragon no primeiro terminal.
 
 ## Teste de Bloqueio de Acesso
 ```
