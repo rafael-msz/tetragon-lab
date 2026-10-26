@@ -1,0 +1,23 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: "remocao-indicadores"
+spec:
+  kprobes:
+  - call: "sys_unlinkat"
+    syscall: true
+    args:
+    - index: 0
+      type: "int"
+    - index: 1
+      type: "string"      # caminho
+    selectors:
+    - matchArgs:
+      - index: 1
+        operator: "Postfix"
+        values:
+        - ".bash_history"
+      - index: 1
+        operator: "Prefix"
+        values:
+        - "/var/log"
