@@ -2,7 +2,7 @@
 
 Ambiente: Ubuntu Server (VM Proxmox / VPS) · Tetragon `v1.7.0` · sem Kubernetes.
 
-Cada bloco pode ser colado inteiro no terminal. Se algum der erro, guarde a mensagem exata.
+Cada bloco pode ser colado inteiro no terminal.
 
 **Onde fica cada coisa**
 
