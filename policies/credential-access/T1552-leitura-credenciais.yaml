@@ -10,11 +10,15 @@ spec:
     - index: 0
       type: "file"
     selectors:
+    # cada condicao em um seletor separado = OU
     - matchArgs:
       - index: 0
         operator: "Equal"
         values:
         - "/etc/shadow"
+      matchActions:
+      - action: Post
+    - matchArgs:
       - index: 0
         operator: "Prefix"
         values:
