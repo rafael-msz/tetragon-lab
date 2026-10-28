@@ -15,6 +15,7 @@ spec:
         operator: "Equal"
         values:
         - "/.dockerenv"
+    - matchArgs:
       - index: 0
         operator: "Postfix"
         values:
