@@ -4,7 +4,7 @@ Referência ampla, para expandir as técnicas de monitoramento. Organizado por *
 
 ---
 
-## 1. Identificação e contexto (responde "ONDE e QUEM")
+## 1. Identificação e contexto 
 
 | Campo | Revela | Por que importa |
 |---|---|---|
@@ -18,7 +18,7 @@ Referência ampla, para expandir as técnicas de monitoramento. Organizado por *
 
 ---
 
-## 2. Execução e linhagem (responde "QUEM CHAMOU QUEM")
+## 2. Execução e linhagem 
 
 | Campo | Revela | Detecta |
 |---|---|---|
@@ -31,7 +31,7 @@ Referência ampla, para expandir as técnicas de monitoramento. Organizado por *
 
 ---
 
-## 3. Privilégio e credenciais (responde "COM QUANTO PODER")
+## 3. Privilégio e credenciais 
 
 | Campo | Revela | Detecta |
 |---|---|---|
@@ -46,7 +46,7 @@ Referência ampla, para expandir as técnicas de monitoramento. Organizado por *
 
 ---
 
-## 4. Isolamento e namespaces (responde "AINDA ESTÁ PRESO?") — núcleo do escape
+## 4. Isolamento e namespaces 
 
 | Campo | Revela | Detecta |
 |---|---|---|
@@ -60,7 +60,7 @@ Referência ampla, para expandir as técnicas de monitoramento. Organizado por *
 
 ---
 
-## 5. Sistema de arquivos (responde "TOCOU O QUÊ")
+## 5. Sistema de arquivos 
 Capturado por kprobes/LSM (`security_file_open`, `security_file_permission`, `fd_install`, `sys_write`...).
 
 | O que vigiar | Exemplos de caminho | Detecta |
@@ -76,7 +76,7 @@ Campo útil: `args[].file.path` (ou o tipo `string` do arg) traz o caminho; `ret
 
 ---
 
-## 6. Rede (responde "FALOU COM QUEM")
+## 6. Rede 
 Capturado por kprobes como `tcp_connect`, `tcp_close`, `sk_alloc`, ou `security_socket_connect`.
 
 | Campo (via `args[].sock_arg`) | Revela | Detecta |
@@ -108,22 +108,7 @@ Padrões a vigiar: conexão **de saída** de um contêiner que não deveria inic
 
 ---
 
-## 8. Os 8 campos que, se você só pudesse olhar alguns
-
-Para começar a expandir, estes dão o maior retorno:
-
-1. `process.binary` + `process.arguments` — o quê
-2. `parent.binary` — quem chamou
-3. `process.docker` — qual contêiner
-4. `process.in_init_tree` — foi injetado?
-5. `process.ns.mnt.is_host` — escapou?
-6. `process.cap.effective` — com quanto poder
-7. `process_credentials.euid` — é root?
-8. caminho do arquivo acessado — tocou algo sensível?
-
----
-
-## 9. Pré-requisitos de configuração
+## 8. Pré-requisitos de configuração
 
 Para alguns campos aparecerem, ligue no `tetragon.conf.d`:
 
