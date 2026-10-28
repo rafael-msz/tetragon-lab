@@ -10,13 +10,14 @@ spec:
     - index: 0
       type: "int"
     - index: 1
-      type: "string"      # caminho
+      type: "string"
     selectors:
     - matchArgs:
       - index: 1
         operator: "Postfix"
         values:
         - ".bash_history"
+    - matchArgs:
       - index: 1
         operator: "Prefix"
         values:
