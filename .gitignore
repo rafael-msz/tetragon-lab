@@ -1,0 +1,28 @@
+# Evidências e logs (podem conter dados do host — NÃO commitar)
+evidencia-*.json
+evidencias/
+*.log
+/var/log/tetragon/
+
+# Artefatos temporários de download/sync
+repo.tar.gz
+/policies_fix/
+/policies_download/
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# LaTeX (se o relatório for compilado dentro do repo)
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
