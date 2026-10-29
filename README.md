@@ -1,207 +1,142 @@
 # tetragon-lab
-Laboratório de testes do framework tetragon.
 
-## Especificação de Ambiente da Máquina Virtual
-Abaixo estão detalhados os recursos da infraestrutura de hardware, sistema operacional e ferramentas de runtime configuradas para hospedar o Tetragon de forma adequada.
+> Detecção e **contenção de _container escape_** em um servidor Docker com **eBPF / Cilium Tetragon**.
+> Projeto acadêmico (Sistemas de Informação) estruturado em três protótipos: **observar → conter → enganar**.
 
-### Proxmox VE e Máquina Virtual
-- Hipervisor: Proxmox VE 9.2.0 (pve-manager: 9.2.3)
-- Kernel do Host: Linux 7.0.12-1-pve
-- Hardware Físico: Intel Core i3-6006U (2.00 GHz, 1 Socket, 4 Cores)
-- Tipo de Instância (Guest): VM QEMU/KVM (ID 101)
-- Recursos da VM: 2 vCPUs | 2.0 GiB RAM | 32.0 GiB Disco (Boot)
+![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)
+![tetragon](https://img.shields.io/badge/Cilium%20Tetragon-v1.7.0-blue)
+![runtime](https://img.shields.io/badge/runtime-Docker-blue)
+![mitre](https://img.shields.io/badge/MITRE%20ATT%26CK-Containers-red)
 
-### Sistema Operacional e Containers
-- Sistema Operacional (VM): Ubuntu 26.04 LTS (Resolute Raccoon)
-- Kernel do Guest: Linux 7.0.0-27-generic
-- Docker Engine: 29.7.2 (API v1.55) | Containerd: v2.3.4 | Runc: 1.4.3
-- Recomendação Tetragon: 256 MiB a 512 MiB de limite de memória.
+---
 
-## Instalação do Tetragon
-Neste laboratório, o Tetragon é instalado como um serviço do Systemd. Systemd é um gerenciador de serviços para sistemas operacionais Linux modernos. É responsável por inicializar o sistema, gerenciar serviços e controlar recursos durante a inicialização do sistema operacional.
+## Sumário
+- [Objetivo](#objetivo)
+- [Arquitetura](#arquitetura)
+- [Os três protótipos](#os-três-protótipos)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Políticas](#políticas)
+- [Início rápido](#início-rápido)
+- [Como funciona a contenção](#como-funciona-a-contenção)
+- [Bases teóricas (frameworks)](#bases-teóricas-frameworks)
+- [⚠️ Avisos de segurança](#️-avisos-de-segurança)
+- [Licença](#licença)
 
-1. Use o CURL para baixar o arquivo .tar.gz contendo a última versão do executável.
-   ```
-   curl -LO https://github.com/cilium/tetragon/releases/download/v1.7.0/tetragon-v1.7.0-amd64.tar.gz
-   ```
-3. Extraia o arquivo, e rode o script para instalar o Tetragon.
-  ```
-  tar -xvf tetragon-v1.7.0-amd64.tar.gz
-  cd tetragon-v1.7.0-amd64/
-  sudo ./install.sh
-  ```
-4. Por fim, verifique se o Tetragon está ativado:
-   ```
-   sudo systemctl status tetragon
-   ```
-5. Para ver o Tetragon em ação basta executar o comando:
-   ```
-   sudo tetra getevents -o compact
-   ```
-## Configuração do Tetragon
-Para reescrever as configurações do tetragon, há o diretório `/etc/tetragon.conf.d/`, onde as configurações ficam guardadas.
+---
 
-Se o diretório não foi criado durante a instalação: `sudo mkdir /etc/tetragon/tetragon.conf.d/`
+## Objetivo
 
-### Ordem de Precedência
-As configurações de controle do Tetragon podem ser carregadas de um arquivo YAML de acordo com a seguinte ordem de precedência:
+Usar o **Tetragon** (sensor de runtime baseado em **eBPF**) para **detectar** e depois **conter**
+tentativas de *container escape* — quando um processo foge do isolamento do contêiner e alcança o host —
+em um servidor **Docker**, sem Kubernetes.
 
-1. Diretório `/etc/tetragon/tetragon.conf.d/*`.
-2. Arquivo `/etc/tetragon/tetragon.yaml`.
-3. Diretórios:
-- `/usr/local/lib/tetragon/tetragon.conf.d/*`
-- `/usr/lib/tetragon/tetragon.conf.d/*`
+Ideia central: a **mesma política** que *observa* um comportamento passa a *contê-lo* apenas trocando a
+ação (`Post` → `Sigkill`/`Override`). Detecção e contenção compartilham o mesmo filtro no kernel.
 
-### Exportação de logs
-O arquivo `export-file-name` dentro do diretório de configurações, define o caminho do arquivo onde o Tetragon escreverá os logs.
+## Arquitetura
 
-Verifique se o arquivo `export-file-name` existe dentro do diretório `/etc/tetragon/tetragon.conf.d/`, e se o caminho especificado no texto do arquivo é _/var/log/tetragon/tetragon.log_. Se o arquivo não existe, utilize os comandos:
-```
-echo "/var/log/tetragon/tetragon.log" | sudo tee -a /etc/tetragon/tetragon.conf.d/export-file-name
-systemctl restart tetragon
-```
+![Arquitetura Tetragon](docs/arquitetura.png)
 
-A configuração `--config-dir` pode ser utilizada para mudar o diretório de onde o Tetragon irá carregar suas configurações.
+O Tetragon anexa programas eBPF a *hooks* do kernel (execução, arquivos, rede, namespaces, credenciais),
+coleta os eventos por *ring buffer*/mapas, enriquece com a identidade do contêiner e exporta como
+**Events / Logs / Métricas / Traces**. As políticas (`TracingPolicy`) decidem **no kernel**, de forma
+**síncrona**, podendo devolver uma ação ao syscall (contenção).
 
-[Tabela de configurações do Tetragon daemon](https://tetragon.io/docs/reference/daemon-configuration/#configure-tracing-policies-location)
+## Os três protótipos
 
-### Habilitar credênciais de processos
-Em linux, cada processo é associado a um usuário, grupo e capabilidades conhecidads como _process credentials_. Para habilitar o Tetragon para ver essas credenciais:
-1. Crie o arquivo: `enable-process-cred` no diretório `/etc/tetragon/tetragon.conf.d/`
-2. Escreva "true" no arquivo.
-```
-echo "true" | sudo tee -a /etc/tetragon/tetragon.conf.d/enable-process-cred
-systemctl restart tetragon
-```
+| # | Protótipo | O que faz | Detalhes |
+|---|-----------|-----------|----------|
+| 1 | **Observabilidade** | Ver processos, arquivos e rede de todos os contêineres a partir do host | [`docs/prototipo-1-observabilidade.md`](docs/prototipo-1-observabilidade.md) |
+| 2 | **Contenção** | Barrar (`Override`) ou encerrar (`Sigkill`) a atividade maliciosa | [`docs/prototipo-2-contencao.md`](docs/prototipo-2-contencao.md) |
+| 3 | **Honeypot** | Servidor isca em VPS isolada + correlação temporal (Wazuh) | [`docs/prototipo-3-honeypot.md`](docs/prototipo-3-honeypot.md) |
 
-### Tracing Policies
-Tetragon automaticamente carrega suas políticas de rastreamento (tracing policies) do diretório padrão `/etc/tetragon/tetragon.tp.d/`.
+> O status e os detalhes de cada etapa vivem no respectivo arquivo em `docs/` — assim este README
+> permanece estável enquanto o projeto evolui.
 
-Tracing policies podem ser organizadas em diretórios como `/etc/tetragon/tetragon.tp.d/file-access`, `/etc/tetragon/tetragon.tp.d/network-access`, etc.
-
-A configuração `--tracing-policy-dir` pode ser usada para mudar o diretório padrão de onde as tracing policies são carregadas.
-
-A configuraão `--tracing-policy` pode ser usada para especificar o caminho de uma tracing policy a ser carregada.
-
-## Testes iniciais
-Esses testes iniciais demonstram as funcionalidades básicas do Tetragon, ainda sem definir uma Tracing Policy. Para realizar os testes abra dois terminais, em um será executado o Tetragon, no outro um container de teste.
-
-### 1. Obervação de processos
-1. No primeiro terminal, faça o Tetragon observar os processos dos programs `bash`, `whoami` e `uname`, para isso execute o comando:
-```
-sudo tetra getevents -o compact --processes bash,whoami,uname
-```
-
-2. No segundo terminal, crie um container de teste que chamaremos de `target`. Após criar container, execute no terminal bash do container os comandos:
-- `whoami`: exibe que usuário está logado;
-- `uname -r`: exibe a versão do kernel.
+## Estrutura do repositório
 
 ```
-docker run -d --name target --rm buildpack-deps:26.04-curl sleep infinity
-docker exec target bash -c "whoami"
-docker exec target bash -c "uname -r"
-docker stop target
+tetragon-lab/
+├── README.md                  # visão geral (este arquivo)
+├── LICENSE
+├── .gitignore
+├── docs/                      # um arquivo por protótipo + diagramas e relatório
+│   ├── arquitetura.png
+│   ├── sincrono.png
+│   ├── prototipo-1-observabilidade.md
+│   ├── prototipo-2-contencao.md
+│   └── prototipo-3-honeypot.md
+├── policies/                  # TracingPolicies por tática MITRE
+│   ├── README.md              # catálogo (gerado automaticamente) + convenções
+│   └── <tatica>/...
+└── scripts/                   # runbooks executáveis
+    ├── 01-instalar.sh
+    ├── 02-sincronizar-policies.sh   # sync com pré-check anti-crash
+    ├── 03-lab.sh
+    ├── 04-simular-ataques.sh
+    ├── gerar-catalogo.sh            # gera a tabela do catálogo a partir das políticas
+    └── filtro.jq
 ```
 
-3. Observe os alertas gerados pelo Tetragon no primeiro terminal.
+## Políticas
 
-### 2. Filtragem de dados de um processo
-1. No primeiro terminal, execute o comando:
-```
-sudo tetra getevents --processes cat | jq '.process_exec.process // empty | {binary, arguments, docker}'
-```
-Este comando faz o Tetragon observar eventos relacionados ao program `cat`, e escrever a saída em um objeto JSON. Em seguida ele faz um `pipe` para a utilidade `jq`, que filtra o objeto e cria um novo objeto, mais limpo, contendo apenas com os campos:
-- `binary`: nome do arquivo ELF;
-- `arguments`: parâmetros fornecidos ao programa;
-- `docker`: o ID do container.
+As `TracingPolicy` ficam em [`policies/`](policies/), **uma por técnica do MITRE ATT&CK**, organizadas
+em pastas por tática. O **catálogo completo é gerado automaticamente** (nome, técnica, hook) — veja
+[`policies/README.md`](policies/README.md) e [como adicionar uma política](policies/README.md#como-adicionar-uma-política).
 
-2. No segundo terminal, execute os comandos:
-````
-docker run -d --name target --rm buildpack-deps:26.04-curl sleep infinity
-docker exec target cat /etc/hostname
-docker inspect -f '{{.Id}}' target | cut -c1-31
-docker stop target
-````
-Essa sequência de comandos cria um docker executa o programa cat em `/etc/hostname` (o padrão são os 12 primeiros caracteres do ID do container), depois lê os primeiros 31 dos 64 caracteres do ID do container.
+> A tabela do catálogo não é mantida à mão: após criar/editar um `.yaml`, rode
+> `bash scripts/gerar-catalogo.sh`.
 
-3. Observe os alertas gerados pelo Tetragon no primeiro terminal.
+## Início rápido
 
-### 3. Observação de I/O em arquivos
-1. No primeiro terminal faça o Tetragon observar os programas `cat` e `bash`. Execute:
-```
-sudo tetra getevents -o compact --process cat,bash
+> Testado em **Ubuntu Server** · Docker · **Tetragon v1.7.0**. Rode apenas em VM/VPS isolada (ver avisos).
+
+```bash
+git clone https://github.com/rafael-msz/tetragon-lab.git
+cd tetragon-lab
+
+sudo bash scripts/01-instalar.sh             # Docker + Tetragon
+sudo bash scripts/02-sincronizar-policies.sh # carrega as políticas (com pré-check)
+sudo bash scripts/03-lab.sh create           # sobe os contêineres-alvo
+
+# Terminal A — observar ao vivo:
+sudo tail -n0 -f /var/log/tetragon/tetragon.log | jq -rc -f scripts/filtro.jq
+# Terminal B — simular ataques (detalhes no doc do protótipo 2):
+sudo bash scripts/04-simular-ataques.sh
 ```
 
-2. No segundo terminal:
-a. Crie um diretório chamado `dummy` e arquivos de teste no diretório /tmp do host. Execute:
-```
-sudo mkdir /tmp/dummy
-sudo touch /tmp/dummy/file0.txt
-sudo touch /tmp/dummy/file1.txt
-```
-b. Crie um container com o diretório `/tmp/dummy` do host montado no diretório seu diretório `/tmp`. Dessa forma, o container consegue ler escrever nesse diretório. Execute:
-```
-docker run \
-  -d \
-  --name target \
-  -v /tmp/dummy:/tmp \
-  --rm \
-  buildpack-deps:26.04-curl \
-  sleep infinity
-```
+## Como funciona a contenção
 
-Faça o container `target` listar os arquivos de `/tmp`:
-```
-docker exec target ls -l tmp
-```
+- **Síncrona (no kernel, Tetragon):** decide no instante do evento — `Override` (nega a chamada,
+  processo segue vivo) ou `Sigkill` (encerra o processo). **Previne**, mas só enxerga o evento atual
+  e a linhagem pai→filho; **não** correlaciona uma sequência de N etapas no tempo.
+- **Assíncrona (fora do kernel, ex. Wazuh):** reage depois, com estado e janela de tempo
+  (`"se A e depois B em N min, então contenha"`). É a **correlação temporal** — tema do protótipo 3.
 
-Faça o container `target` criar e escrever em arquivos em `/tmp`. Exemplo:
-```
-ts=$(date +"%Y-%m-%d %H:%M:%S")
-docker exec target bash -c "echo Ubuntu was here at $ts >> /tmp/secret.txt"
-```
+![Síncrono](docs/sincrono.png)
 
-3. Liste o diretório `/tmp/dummy` do host e leia os arquivos para confirmar que o container de fato leu e escreveu neles. Observe os alertas gerados pelo Tetragon no primeiro terminal.
+## Bases teóricas (frameworks)
 
-### 4. Observação de requisições feitas por um container
-1. No primeiro terminal, faça o Tetragon observar eventos do programa `curl`:
-```
-sudo tetra getevents -o compact --processes curl
-```
-2. No segundo termianal, crie um container e baixe arquivos usando o `curl`. Exemplo:
-```
-docker run -d --name target --rm buildpack-deps:26.04-curl sleep infinity
-docker exec target curl -sI https://ebpf.io
-docker exec target curl -s http://127.0.0.1
-docker stop target
-```
-3. Observe os alertas gerados pelo Tetragon no primeiro terminal.
+| Camada | Frameworks |
+|--------|-----------|
+| Modelagem de ataque | **MITRE ATT&CK (Containers)**, **Cyber Kill Chain** (Lockheed Martin), MITRE D3FEND, Unified Kill Chain |
+| Segurança de contêiner | **NIST SP 800-190**, **CIS Docker Benchmark**, OWASP Docker Top 10, CNCF Cloud Native Security |
+| Detecção / monitoramento | **NIST SP 800-94** (IDS/IPS), NIST SP 800-137 (monitoramento contínuo) |
+| Deception (protótipo 3) | **MITRE Engage** |
 
-## Teste de Bloqueio de Acesso
-```
-apiVersion: cilium.io/v1alpha1
-kind: TracingPolicy
-metadata:
-  name: "monitorar-segredo"
-spec:
-  kprobes:
-    - call: "security_file_permission"
-      syscall: false
-      args:
-        - index: 0
-          type: "file"
-        - index: 1
-          type: "int"
-      selectors:
-        - matchArgs:
-            - index: 0
-              operator: "Equal"
-              values:
-                - "/tmp/dummy/secret.txt"
-            - index: 1
-              operator: "Equal"
-              values:
-                - "4"
-          matchActions:
-            - action: Sigkill
-```
+## ⚠️ Avisos de segurança
+
+- Os contêineres do laboratório são **inseguros de propósito** (expõem `docker.sock`, rodam
+  `--privileged`). **Use somente em VM/VPS isolada** e remova-os após os testes.
+- **Nunca** baixe mineradores reais: a simulação de *cryptomining* usa apenas carga de CPU benigna.
+- Arquivos de evidência (`evidencia-*.json`, logs) podem conter **dados do host** — estão no
+  `.gitignore` e **não devem** ser commitados.
+- Em VPS, **não exponha** as portas de métricas/observabilidade (2112/9090/3000) à internet.
+
+## Licença
+
+Ver [`LICENSE`](LICENSE).
+
+---
+
+*Autores: Rafael e Ronnald — projeto acadêmico de Sistemas de Informação.*
