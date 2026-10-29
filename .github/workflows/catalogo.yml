@@ -1,0 +1,33 @@
+name: Atualizar catálogo de políticas
+
+# Regenera a tabela em policies/README.md sempre que uma política mudar.
+# Assim o catálogo nunca fica desatualizado, mesmo que você esqueça de rodar o script.
+
+on:
+  push:
+    paths:
+      - 'policies/**/*.yaml'
+      - 'policies/**/*.yml'
+      - 'scripts/gerar-catalogo.sh'
+
+permissions:
+  contents: write
+
+jobs:
+  catalogo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gerar catálogo
+        run: bash scripts/gerar-catalogo.sh
+      - name: Commitar se mudou
+        run: |
+          if ! git diff --quiet -- policies/README.md; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add policies/README.md
+            git commit -m "docs(policies): atualiza catalogo (automatico)"
+            git push
+          else
+            echo "catalogo ja esta atualizado"
+          fi
