@@ -2,7 +2,16 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "escape-mount"
+  annotations:
+    mitre.technique: "T1611"
+    description: "Montagem a partir de dentro de um contêiner (mount do disco do host)"
+    modo-suportado: "observação/contenção"
 spec:
+  # Carrega em modo 'monitor'. Para conter na hora:
+  #   sudo bash scripts/05-modo.sh escape-mount enforce
+  options:
+    - name: "policy-mode"
+      value: "monitor"
   kprobes:
   - call: "sys_mount"
     syscall: true
@@ -12,8 +21,15 @@ spec:
     - index: 1
       type: "string"      # destino
     selectors:
-    - matchNamespaceChanges:
-      - operator: In
-        values: ["Mnt"]
+    # matchNamespaceChanges detecta MUDANÇA de namespace (unshare/setns), não um mount
+    # comum — por isso não disparava. O correto é filtrar pelo ESTADO: processo cujo
+    # namespace de montagem NÃO é o do host = processo dentro de um contêiner.
+    - matchNamespaces:
+      - namespace: Mnt
+        operator: NotIn
+        values:
+        - "host_ns"
       matchActions:
-      - action: Post
+      # Em enforcement, Override faz o mount falhar.
+      - action: Override
+        argError: -1

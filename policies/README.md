@@ -11,17 +11,17 @@ funcionam direto.
 
 <!-- CATALOGO:START -->
 
-| Tática | Técnica | Política | Hook | Descrição |
-|---|---|---|---|---|
-| Command & Control | T1071 | `conexao-saida` | `tcp_connect` | — |
-| Credential Access | T1552 | `leitura-credenciais` | `security_file_open` | — |
-| Defense Evasion | T1070 | `remocao-indicadores` | `sys_unlinkat` | — |
-| Discovery | T1613 | `container-discovery` | `security_file_open` | — |
-| Execution | T1105 | `exec-ferramentas-transferencia` | `sys_execve` | — |
-| Impact | T1496 | `mineracao-pool` | `tcp_connect` | — |
-| Persistence | T1098 | `persistencia-arquivos` | `security_file_open` | — |
-| Privilege Escalation | T1611 | `escape-docker-sock` | `security_file_open` | — |
-| Privilege Escalation | T1611 | `escape-mount` | `sys_mount` | — |
+| Tática | Técnica | Política | Hook | Modo | Descrição |
+|---|---|---|---|---|---|
+| Command & Control | T1071 | `conexao-saida` | `tcp_connect` | observação | Conexão de saída para fora da rede privada (C2 / reverse shell) |
+| Credential Access | T1552 | `leitura-credenciais` | `security_file_open` | observação | Leitura de arquivos de segredo (/etc/shadow, /root/.ssh/) |
+| Defense Evasion | T1070 | `remocao-indicadores` | `sys_unlinkat` | observação | Remoção de rastros (.bash_history, /var/log) |
+| Discovery | T1613 | `container-discovery` | `security_file_open` | observação | Descoberta de ambiente de contêiner (/.dockerenv, cgroup) |
+| Execution | T1105 | `exec-ferramentas-transferencia` | `sys_execve` | observação | Execução de ferramentas de transferência (curl/wget/apk/apt-get/nc) |
+| Impact | T1496 | `mineracao-pool` | `tcp_connect` | observação | Conexão a portas típicas de pool de mineração (cryptojacking) |
+| Persistence | T1098 | `persistencia-arquivos` | `security_file_open` | observação | Escrita em arquivos de persistência (authorized_keys, cron, systemd) |
+| Privilege Escalation | T1611 | `escape-docker-sock` | `security_socket_connect` | observação/contenção | Conexão ao soquete de controle do Docker (/run/docker.sock) |
+| Privilege Escalation | T1611 | `escape-mount` | `sys_mount` | observação/contenção | Montagem a partir de dentro de um contêiner (mount do disco do host) |
 
 <!-- CATALOGO:END -->
 

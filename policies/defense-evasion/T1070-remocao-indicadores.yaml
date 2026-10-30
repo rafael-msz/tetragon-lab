@@ -2,6 +2,10 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "remocao-indicadores"
+  annotations:
+    mitre.technique: "T1070"
+    description: "Remoção de rastros (.bash_history, /var/log)"
+    modo-suportado: "observação"
 spec:
   kprobes:
   - call: "sys_unlinkat"

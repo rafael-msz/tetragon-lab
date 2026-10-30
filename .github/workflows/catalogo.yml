@@ -1,7 +1,8 @@
-name: Atualizar catálogo de políticas
+name: Validar catálogo de políticas
 
-# Regenera a tabela em policies/README.md sempre que uma política mudar.
-# Assim o catálogo nunca fica desatualizado, mesmo que você esqueça de rodar o script.
+# A cada push/PR que mexe em políticas, confere se a tabela em policies/README.md
+# está em dia com os YAMLs. NÃO altera o repositório: se estiver desatualizada, a
+# verificação FALHA pedindo para você rodar o script e commitar.
 
 on:
   push:
@@ -9,25 +10,25 @@ on:
       - 'policies/**/*.yaml'
       - 'policies/**/*.yml'
       - 'scripts/gerar-catalogo.sh'
-
-permissions:
-  contents: write
+  pull_request:
+    paths:
+      - 'policies/**/*.yaml'
+      - 'policies/**/*.yml'
+      - 'scripts/gerar-catalogo.sh'
 
 jobs:
-  catalogo:
+  validar-catalogo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Gerar catálogo
+      - name: Regenerar o catálogo
         run: bash scripts/gerar-catalogo.sh
-      - name: Commitar se mudou
+      - name: Conferir se está em dia
         run: |
           if ! git diff --quiet -- policies/README.md; then
-            git config user.name  "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add policies/README.md
-            git commit -m "docs(policies): atualiza catalogo (automatico)"
-            git push
-          else
-            echo "catalogo ja esta atualizado"
+            echo "::error::O catálogo (policies/README.md) está desatualizado."
+            echo "Rode 'bash scripts/gerar-catalogo.sh' e commite o resultado."
+            git --no-pager diff -- policies/README.md
+            exit 1
           fi
+          echo "Catálogo em dia."

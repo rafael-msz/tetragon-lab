@@ -2,6 +2,10 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "exec-ferramentas-transferencia"
+  annotations:
+    mitre.technique: "T1105"
+    description: "Execução de ferramentas de transferência (curl/wget/apk/apt-get/nc)"
+    modo-suportado: "observação"
 spec:
   kprobes:
   - call: "sys_execve"

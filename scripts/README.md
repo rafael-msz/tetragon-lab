@@ -8,6 +8,7 @@ Runbooks executáveis do laboratório. Rode sempre a partir da raiz do repositó
 | `02-sincronizar-policies.sh` | Copia `policies/` → `/etc/tetragon/tetragon.tp.d/` e recarrega. **Roda um pré-check** que impede subir um YAML inválido (que derrubaria o agente). |
 | `03-lab.sh` | `create` / `reset` / `status` / `destroy` dos contêineres-alvo (`lab-sock`, `lab-priv`). |
 | `04-simular-ataques.sh` | Dispara as técnicas para validar a detecção. Aceita números de técnica (ex.: `... 3 5`). |
+| `05-modo.sh` | **Troca o modo** de uma política (`monitor` ↔ `enforce`) por comando, **sem editar o YAML**. `list` mostra os modos atuais. |
 | `gerar-catalogo.sh` | Lê `policies/**/*.yaml` e **regenera a tabela** em `policies/README.md`. Rode após adicionar/editar uma política. |
 | `filtro.jq` | Filtro `jq` que torna os eventos legíveis (uma linha por evento, só de contêiner). |
 
@@ -19,8 +20,9 @@ A tabela em `policies/README.md` **não é editada à mão** — é gerada:
 bash scripts/gerar-catalogo.sh
 ```
 
-Opcional: o workflow em `.github/workflows/catalogo.yml` roda isso sozinho a cada push que mexe em
-`policies/`, mantendo a tabela sempre em dia sem você precisar lembrar.
+O workflow em `.github/workflows/catalogo.yml` **só valida** (não altera o repo): a cada push/PR que
+mexe em `policies/`, ele confere se a tabela está em dia e **falha** caso você tenha esquecido de
+rodar o script — aí é só rodar `bash scripts/gerar-catalogo.sh` e commitar.
 
 ## Fluxo típico
 

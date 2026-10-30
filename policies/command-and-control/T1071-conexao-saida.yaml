@@ -2,6 +2,10 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "conexao-saida"
+  annotations:
+    mitre.technique: "T1071"
+    description: "Conexão de saída para fora da rede privada (C2 / reverse shell)"
+    modo-suportado: "observação"
 spec:
   kprobes:
   - call: "tcp_connect"

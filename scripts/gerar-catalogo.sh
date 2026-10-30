@@ -29,8 +29,8 @@ field(){ grep -m1 -E "$1" "$2" 2>/dev/null | sed -E "$3" || true; }
 
 tmp="$(mktemp)"; count=0
 {
-  echo "| Tática | Técnica | Política | Hook | Descrição |"
-  echo "|---|---|---|---|---|"
+  echo "| Tática | Técnica | Política | Hook | Modo | Descrição |"
+  echo "|---|---|---|---|---|---|"
   while IFS= read -r f; do
     folder="$(basename "$(dirname "$f")")"
     tat="${TAT[$folder]:-$folder}"
@@ -40,9 +40,13 @@ tmp="$(mktemp)"; count=0
     name="$(field '^\s*name:' "$f" 's/.*name:\s*"?([^"]+)"?.*/\1/')"
     hook="$(field '^\s*-?\s*call:' "$f" 's/.*call:\s*"?([^"]+)"?.*/\1/')"
     desc="$(field '\s*description:' "$f" 's/.*description:\s*"?([^"]*)"?.*/\1/')"
-    echo "| $tat | $tech | \`${name:-?}\` | \`${hook:-?}\` | ${desc:-—} |"
+    modo="$(field '\s*modo-suportado:' "$f" 's/.*modo-suportado:\s*"?([^"]*)"?.*/\1/')"
+    if [[ -z "$modo" ]]; then
+      if grep -qE '\b(Override|Sigkill)\b' "$f"; then modo="observação/contenção"; else modo="observação"; fi
+    fi
+    echo "| $tat | $tech | \`${name:-?}\` | \`${hook:-?}\` | ${modo} | ${desc:-—} |"
     count=$((count+1))
-  done < <(find "$POL" -type f \( -name '*.yaml' -o -name '*.yml' \) | sort)
+  done < <(find "$POL" -type f \( -name '*.yaml' -o -name '*.yml' \) -not -name '_*' | sort)
 } > "$tmp"
 
 awk -v tblfile="$tmp" '

@@ -1,0 +1,29 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy          # SEMPRE TracingPolicy (nunca Namespaced, em Docker puro)
+metadata:
+  # nome ÚNICO em todo o repositório (minúsculas, com hífens)
+  name: "NOME-UNICO-DA-POLITICA"
+  annotations:
+    mitre.technique: "Txxxx"                 # entra na coluna Técnica do catálogo
+    description: "O que esta política detecta, em uma linha"   # coluna Descrição
+    modo-suportado: "observação"             # "observação" | "observação/contenção"
+spec:
+  # (Opcional) Para uma política que PODE conter, carregue-a segura, em modo monitor:
+  #   options:
+  #     - name: "policy-mode"
+  #       value: "monitor"
+  # ...e troque para enforcement na hora com: scripts/05-modo.sh <nome> enforce
+  kprobes:
+  - call: "FUNCAO_DO_KERNEL"   # ex.: security_file_open, sys_execve, security_socket_connect
+    syscall: false             # true para syscalls (sys_*)
+    args:
+    - index: 0
+      type: "file"             # file | string | sock | sockaddr | sockaddr_un | int ...
+    selectors:
+    - matchArgs:
+      - index: 0
+        operator: "Equal"      # Equal | Prefix | Postfix | DPort | NotDAddr | Family ...
+        values:
+        - "VALOR"
+      matchActions:
+      - action: Post           # Post (observa) | Override+argError (nega) | Sigkill (mata)

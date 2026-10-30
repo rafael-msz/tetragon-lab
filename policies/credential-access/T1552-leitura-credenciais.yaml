@@ -2,6 +2,10 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "leitura-credenciais"
+  annotations:
+    mitre.technique: "T1552"
+    description: "Leitura de arquivos de segredo (/etc/shadow, /root/.ssh/)"
+    modo-suportado: "observação"
 spec:
   kprobes:
   - call: "security_file_open"

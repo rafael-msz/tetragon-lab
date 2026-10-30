@@ -2,18 +2,34 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "escape-docker-sock"
+  annotations:
+    mitre.technique: "T1611"
+    description: "Conexão ao soquete de controle do Docker (/run/docker.sock)"
+    modo-suportado: "observação/contenção"
 spec:
+  # Carrega em modo 'monitor' (ação de contenção elidida, só conta NMONITOR).
+  # Para conter de verdade na hora da demo, sem editar este arquivo:
+  #   sudo bash scripts/05-modo.sh escape-docker-sock enforce
+  options:
+    - name: "policy-mode"
+      value: "monitor"
   kprobes:
-  - call: "security_file_open"
+  # O acesso ao docker.sock é uma connect() em soquete UNIX — NÃO é open() de arquivo.
+  # Por isso o hook correto é security_socket_connect com o argumento sockaddr_un
+  # (extrai o caminho do soquete), e não security_file_open.
+  - call: "security_socket_connect"
     syscall: false
     args:
-    - index: 0
-      type: "file"
+    - index: 1
+      type: "sockaddr_un"      # soquete UNIX: expõe família + caminho
     selectors:
     - matchArgs:
-      - index: 0
-        operator: "Equal"
+      - index: 1
+        operator: "Equal"      # sockaddr_un aceita Equal/Prefix (não Postfix)
         values:
         - "/run/docker.sock"
+        - "/var/run/docker.sock"   # caminho mais comum dentro do contêiner (symlink)
       matchActions:
-      - action: Post
+      # Em enforcement, Override nega a connect() (processo segue vivo).
+      - action: Override
+        argError: -1

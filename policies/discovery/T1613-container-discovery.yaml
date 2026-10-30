@@ -2,6 +2,10 @@ apiVersion: cilium.io/v1alpha1
 kind: TracingPolicy
 metadata:
   name: "container-discovery"
+  annotations:
+    mitre.technique: "T1613"
+    description: "Descoberta de ambiente de contêiner (/.dockerenv, cgroup)"
+    modo-suportado: "observação"
 spec:
   kprobes:
   - call: "security_file_open"

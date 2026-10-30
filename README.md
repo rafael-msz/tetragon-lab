@@ -8,6 +8,10 @@
 ![runtime](https://img.shields.io/badge/runtime-Docker-blue)
 ![mitre](https://img.shields.io/badge/MITRE%20ATT%26CK-Containers-red)
 
+> **Para quem lê:** a professora reproduz o lab pelo [Início rápido](#início-rápido); recrutadores
+> têm a visão de portfólio (arquitetura + decisões técnicas); pesquisadores encontram as políticas,
+> hooks e limites em [`policies/`](policies/) e [`docs/`](docs/).
+
 ---
 
 ## Sumário
@@ -68,12 +72,14 @@ tetragon-lab/
 │   └── prototipo-3-honeypot.md
 ├── policies/                  # TracingPolicies por tática MITRE
 │   ├── README.md              # catálogo (gerado automaticamente) + convenções
+│   ├── _template.yaml         # modelo para novas políticas
 │   └── <tatica>/...
 └── scripts/                   # runbooks executáveis
     ├── 01-instalar.sh
     ├── 02-sincronizar-policies.sh   # sync com pré-check anti-crash
     ├── 03-lab.sh
     ├── 04-simular-ataques.sh
+    ├── 05-modo.sh                   # troca monitor<->enforce por comando (sem editar YAML)
     ├── gerar-catalogo.sh            # gera a tabela do catálogo a partir das políticas
     └── filtro.jq
 ```
@@ -103,6 +109,9 @@ sudo bash scripts/03-lab.sh create           # sobe os contêineres-alvo
 sudo tail -n0 -f /var/log/tetragon/tetragon.log | jq -rc -f scripts/filtro.jq
 # Terminal B — simular ataques (detalhes no doc do protótipo 2):
 sudo bash scripts/04-simular-ataques.sh
+
+# (opcional) ligar a contenção de uma política na hora, sem editar o YAML:
+sudo bash scripts/05-modo.sh escape-docker-sock enforce
 ```
 
 ## Como funciona a contenção
@@ -114,6 +123,29 @@ sudo bash scripts/04-simular-ataques.sh
   (`"se A e depois B em N min, então contenha"`). É a **correlação temporal** — tema do protótipo 3.
 
 ![Síncrono](docs/sincrono.png)
+
+### Modos de política — ligar a contenção na hora, sem editar o YAML
+
+Cada técnica é **um único YAML**. A troca entre observar e conter usa o recurso **nativo** de modo
+do Tetragon (opção `policy-mode` + `tetra tracingpolicy set-mode`), não cópias de arquivo por modo:
+
+| Modo | O que faz |
+|------|-----------|
+| `monitor` | ações de contenção **elididas** (só conta `NMONITOR`) → observação |
+| `enforce` | ações (`Override`/`Sigkill`) **executadas** → contenção |
+| `monitor_only` | política sem ação de contenção (só `Post`) — não pode ir a `enforce` |
+
+Políticas com ação de contenção (ex.: `escape-docker-sock`, `escape-mount`) carregam em `monitor`
+por padrão (`spec.options: policy-mode`). Para alternar na apresentação:
+
+```bash
+sudo bash scripts/05-modo.sh escape-docker-sock enforce   # liga a contenção
+sudo bash scripts/05-modo.sh escape-docker-sock monitor   # volta a observar
+sudo bash scripts/05-modo.sh list                         # vê o modo de cada política
+```
+
+> Adicionar uma técnica = criar **um** arquivo (copie `policies/_template.yaml`) e rodar
+> `bash scripts/gerar-catalogo.sh`. README, catálogo e scripts se ajustam sozinhos.
 
 ## Bases teóricas (frameworks)
 
