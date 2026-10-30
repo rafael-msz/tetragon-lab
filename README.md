@@ -52,7 +52,7 @@ coleta os eventos por *ring buffer*/mapas, enriquece com a identidade do contêi
 |---|-----------|-----------|----------|
 | 1 | **Observabilidade** | Ver processos, arquivos e rede de todos os contêineres a partir do host | [`docs/prototipo-1-observabilidade.md`](docs/prototipo-1-observabilidade.md) |
 | 2 | **Contenção** | Barrar (`Override`) ou encerrar (`Sigkill`) a atividade maliciosa | [`docs/prototipo-2-contencao.md`](docs/prototipo-2-contencao.md) |
-| 3 | **Honeypot** | Servidor isca em VPS isolada + correlação temporal (Wazuh) | [`docs/prototipo-3-honeypot.md`](docs/prototipo-3-honeypot.md) |
+| 3 | **Honeypot** | Servidor isca em VPS isolada | [`docs/prototipo-3-honeypot.md`](docs/prototipo-3-honeypot.md) |
 
 > O status e os detalhes de cada etapa vivem no respectivo arquivo em `docs/` — assim este README
 > permanece estável enquanto o projeto evolui.
