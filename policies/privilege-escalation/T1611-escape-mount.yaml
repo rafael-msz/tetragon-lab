@@ -13,13 +13,17 @@ spec:
     - name: "policy-mode"
       value: "monitor"
   kprobes:
-  - call: "security_sb_mount" #Nem todos os Kernels possuem essa opção "sys_mount"
-    syscall: true
+  # Hook LSM (não é syscall): o Override usa fmod_ret e não depende de
+  # bpf_override_return / CONFIG_BPF_KPROBE_OVERRIDE, que o kernel do WSL não tem.
+  - call: "security_sb_mount"
+    syscall: false
     args:
     - index: 0
-      type: "string"      # fonte
+      type: "string"      # origem (dev_name)
     - index: 1
-      type: "string"      # destino
+      type: "path"        # ponto de montagem (struct path *)
+    - index: 2
+      type: "string"      # tipo do filesystem
     selectors:
     # matchNamespaceChanges detecta MUDANÇA de namespace (unshare/setns), não um mount
     # comum — por isso não disparava. O correto é filtrar pelo ESTADO: processo cujo
