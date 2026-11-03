@@ -21,7 +21,7 @@ funcionam direto.
 | Impact | T1496 | `mineracao-pool` | `tcp_connect` | observação | Conexão a portas típicas de pool de mineração (cryptojacking) |
 | Persistence | T1098 | `persistencia-arquivos` | `security_file_open` | observação | Escrita em arquivos de persistência (authorized_keys, cron, systemd) |
 | Privilege Escalation | T1611 | `escape-docker-sock` | `security_socket_connect` | observação/contenção | Conexão ao soquete de controle do Docker (/run/docker.sock) |
-| Privilege Escalation | T1611 | `escape-mount` | `sys_mount` | observação/contenção | Montagem a partir de dentro de um contêiner (mount do disco do host) |
+| Privilege Escalation | T1611 | `escape-mount` | `security_sb_mount` | observação/contenção | Montagem a partir de dentro de um contêiner (mount do disco do host) |
 
 <!-- CATALOGO:END -->
 
