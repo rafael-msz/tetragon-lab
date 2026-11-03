@@ -1,1 +1,12 @@
-select(.process_kprobe)|select(.process_kprobe.process.docker!=null)|{hora:.time[11:19],cont:.process_kprobe.process.docker[0:12],politica:.process_kprobe.policy_name,hook:.process_kprobe.function_name,processo:.process_kprobe.process.binary,cmd:.process_kprobe.process.arguments,evidencia:[.process_kprobe.args[]?|(.file_arg.path//.string_arg//(if .sock_arg then (.sock_arg.daddr+":"+((.sock_arg.dport//0)|tostring)) else null end)//(.int_arg|tostring))],uid:.process_kprobe.process.process_credentials.uid,isolamento:(if .process_kprobe.process.ns.mnt.is_host==true then "ESCAPE->HOST" elif .process_kprobe.process.ns.mnt.inum!=null then "contido" else "n/d" end)}
+fromjson?
+| (.process_exec // .process_exit // .process_kprobe) as $e
+| select($e != null)
+| select( ($e.process.binary // "") | test("/runc$|containerd|/systemd$|unix_chkpwd|/sudo$|/sleep$|/docker$|/tetra$|getevents") | not )
+| ( .time[11:19] ) as $t
+| ( if .process_exec then "exec " elif .process_exit then "exit " else "kprb " end ) as $tipo
+| ( ($e.process.docker // "")[0:12] | if . == "" then "host" else . end ) as $loc
+| ( if .process_kprobe then ((.process_kprobe.policy_name // "-") + ":" + (.process_kprobe.function_name // "-"))
+    elif .process_exit then ("exit=" + ((.process_exit.status // 0) | tostring))
+    else "-" end ) as $lbl
+| ( (($e.process.binary // "") + " " + ($e.process.arguments // ""))[0:72] ) as $cmd
+| "\($t)  \($tipo) \($loc | .[0:12])  \($lbl)  \($cmd)"
